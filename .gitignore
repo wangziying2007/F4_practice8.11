@@ -1,0 +1,22 @@
+# ============ Keil MDK-ARM 编译产物（不需要纳入版本控制） ============
+# 输出目录：MDK-ARM/F4_practice/
+MDK-ARM/F4_practice/
+
+# Keil 单个文件类型的产物（双击工程时也会生成）
+MDK-ARM/*.o
+MDK-ARM/*.d
+MDK-ARM/*.axf
+MDK-ARM/*.map
+MDK-ARM/*.hex
+MDK-ARM/*.htm
+MDK-ARM/*.lnp
+MDK-ARM/*.sct
+MDK-ARM/*.dep
+MDK-ARM/*.crf
+MDK-ARM/*.build_log.htm
+
+# Keil / uVision 用户与临时文件
+MDK-ARM/*.uvguix.*
+MDK-ARM/*.bak
+MDK-ARM/DebugConfig/
+MDK-ARM/RTE/
