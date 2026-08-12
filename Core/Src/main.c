@@ -28,6 +28,9 @@
 #include "beep.h"
 #include "EXTI_IRQHandler.h"
 #include "TIM_IRQHandler.h"
+#include "UART_IRQHandler.h"
+#include "vofa_justfloat.h"
+#include <math.h>
 
 /* USER CODE END Includes */
 
@@ -101,70 +104,40 @@ int main(void)
   /* USER CODE BEGIN 2 */
   Beep_Init();        /* 开机提示音                                          */
   LED_Init();         /* 初始化 LED 并启动 TIM3 呼吸 PWM，初始四灯全灭       */
+  UART_Start_Receive ();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* ------------------------------------------------------------
-     * 第 1 步：扫描按键，判定本次是"短按"还是"长按"
-     *   - 返回 KEY_EVENT_NONE  无事件
-     *   - 返回 KEY_EVENT_SHORT 短按
-     *   - 返回 KEY_EVENT_LONG  长按
-     * ---------------------------------------------------------- */
-    Key_Event_t key_event = Key_Scan();
+   
+    /* 处理 DMA + 空闲中断收到的消息：解析帧 → 累加 Beep_Trigger */
+    UART_ParseFrames();
 
-    /* ------------------------------------------------------------
-     * 第 2 步：状态迁移（以最后一次操作为准）
-     *   - 长按 → 流水灯状态 (LED1/LED2)
-     *   - 短按 → 呼吸灯状态 (LED3/LED4)
-     *   - 已在目标状态则忽略，避免重复蜂鸣
-     * ---------------------------------------------------------- */
-    if (key_event == KEY_EVENT_LONG)
+
+    if (Beep_Trigger !=0)
     {
-        if (g_led_state != LED_STATE_FLOW)
+        Beep_Alarm(Beep_Trigger);
+        Beep_Trigger=0;
+    }
+
+    /* VOFA+ JustFloat 打波演示：
+     * 用 memcpy 把两个 float(正弦/余弦) 拼成 JustFloat 帧发给上位机。
+     * 把 a/b 替换为你自己的真实数据即可（如编码器角度、速度、IMU 等）。 */
+    {
+        static float phase = 0.0f;
+        float a = sinf(phase);          /* 通道1：正弦波              */
+        float b = cosf(phase * 2.0f);   /* 通道2：余弦波，频率为2倍   */
+        JustFloat_Send2(a, b);          /* 发送一帧(两个通道)         */
+        phase += 0.08f;                 /* 相位步进，控制波形快慢     */
+        if (phase > 6.2832f)
         {
-            g_breath_enable = 0;      /* 先关呼吸灯变化 */
-            Breath_Reset();           /* 复位呼吸计数   */
-            LED_AllOff();             /* 灭灯，准备流水 */
-            Beep_Alarm(1);            /* 提示：进入流水(1 短声) */
-            g_led_state = LED_STATE_FLOW;
+            phase -= 6.2832f;           /* 2π 周期回绕                */
         }
-    }
-    else if (key_event == KEY_EVENT_SHORT)
-    {
-        if (g_led_state != LED_STATE_BREATH)
-        {
-            LED_AllOff();             /* 熄灭流水灯            */
-            Breath_Reset();           /* 复位呼吸计数          */
-            g_breath_enable = 1;      /* 允许呼吸灯变化        */
-            LED_BreathStart();        /* 呼吸灯占空比清零起步  */
-            Beep_Alarm(2);            /* 提示：进入呼吸(2 短声) */
-            g_led_state = LED_STATE_BREATH;
-        }
+        HAL_Delay(20);                  /* 约 50Hz 采样率发帧给上位机 */
     }
 
-    /* ------------------------------------------------------------
-     * 第 3 步：按当前状态执行显示效果
-     *   - 流水：LED1/LED2 循环流水（内部有延时，会阻塞循环）
-     *   - 呼吸：由 TIM2 中断驱动 PWM，这里无需额外处理
-     *   - OFF ：四灯全灭
-     * ---------------------------------------------------------- */
-    switch (g_led_state)
-    {
-        case LED_STATE_FLOW:
-            LED_Flow();               /* LED1/LED2 流水     */
-            break;
-
-        case LED_STATE_BREATH:
-            /* 呼吸由 TIM_PeriodElapsedCallback 驱动，无需处理 */
-            break;
-
-        default:                      /* LED_STATE_OFF */
-            LED_AllOff();             /* 四灯全灭         */
-            break;
-    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

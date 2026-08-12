@@ -341,7 +341,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F405xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Core/HDL/Inc;../Core/IRQ/Inc</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Core/HDL/Inc;../Core/IRQ/Inc;..\Core\HDL\Inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -693,6 +693,11 @@
               <FileType>1</FileType>
               <FilePath>..\Core\HDL\Src\led.c</FilePath>
             </File>
+            <File>
+              <FileName>vofa_justfloat.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\HDL\Src\vofa_justfloat.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -707,6 +712,11 @@
               <FileName>TIM_IRQHandler.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\IRQ\Src\TIM_IRQHandler.c</FilePath>
+            </File>
+            <File>
+              <FileName>UART_IRQHandler.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\IRQ\Src\UART_IRQHandler.c</FilePath>
             </File>
           </Files>
         </Group>
